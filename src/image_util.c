@@ -128,10 +128,10 @@ void gl_resizeImageNoInterpolate(GLubyte* dest, GLint xsize_dest, GLint ysize_de
 
 			pix[0] = pix1[0];
 			pix[1] = pix1[1];
-//            if (components == 3)
-//                pix[2] = pix1[2];
-//            if (components == 4)
-//                pix[3] = pix1[3];
+            if (components >= 3)
+                pix[2] = pix1[2];
+            if (components == 4)
+                pix[3] = pix1[3];
 
 			pix += components;
 			x1 += x1inc;

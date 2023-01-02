@@ -347,10 +347,14 @@ void glopTexImage2D(GLParam* p) {
 		}
 		/* no GLinterpolation is done here to respect the original image aliasing ! */
 		
+#ifdef WATCH
+        gl_resizeImageNoInterpolate(pixels1, TGL_FEATURE_TEXTURE_DIM, TGL_FEATURE_TEXTURE_DIM, pixels, width, height, components);
+#else
         if (components == 2)
             gl_resizeImageNoInterpolate(pixels1, TGL_FEATURE_TEXTURE_DIM, TGL_FEATURE_TEXTURE_DIM, pixels, width, height, components);
         else
             gl_resizeImage(pixels1, TGL_FEATURE_TEXTURE_DIM, TGL_FEATURE_TEXTURE_DIM, pixels, width, height, components);
+#endif
 		do_free = 1;
 		width = TGL_FEATURE_TEXTURE_DIM;
 		height = TGL_FEATURE_TEXTURE_DIM;

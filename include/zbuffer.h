@@ -83,9 +83,15 @@
 #define GET_GREENER(p) ((p & 0xff00)<<8)
 #define GET_BLUEER(p) ((p & 0xff)<<16)
 /*These never change, DO NOT CHANGE THESE BASED ON COLOR INTERP BIT DEPTH*/
+#ifdef WATCH
+#define GET_RED(p) (p&0xff)
+#define GET_GREEN(p) ((p>>8)&0xff)
+#define GET_BLUE(p) ((p>>16)&0xff)
+#else
 #define GET_RED(p) ((p>>16)&0xff)
 #define GET_GREEN(p) ((p>>8)&0xff)
 #define GET_BLUE(p) (p&0xff)
+#endif
 #define GET_ALPHA(p) ((p>>24)&0xff)
 typedef GLuint PIXEL;
 #define PSZB 4
