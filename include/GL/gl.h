@@ -32,6 +32,7 @@ enum {
 	GL_4_BYTES			= 0x1409,
 	GL_UNSIGNED_SHORT_5_6_5 = 0x140A,
 	GL_UNSIGNED_INT_8_8_8_8 = 0x140B,
+    GL_UNSIGNED_SHORT_1_5_5_5_REV = 0x8366,
 
 	/* Primitives */
 	GL_LINES			= 0x0001,
@@ -373,6 +374,7 @@ enum {
 	GL_DITHER			= 0x0BD0,
 	GL_RGB				= 0x1907,
 	GL_RGBA				= 0x1908,
+    GL_BGRA             = 0x80E1,
 
 	/* Implementation limits */
 	GL_MAX_LIST_NESTING		= 0x0B31,
@@ -855,6 +857,8 @@ void glScalef(GLfloat x,GLfloat y,GLfloat z);
 void glViewport(GLint x,GLint y,GLint width,GLint height);
 void glFrustum(GLdouble left,GLdouble right,GLdouble bottom,GLdouble top,
                GLdouble near,GLdouble far);
+void glOrtho(GLdouble left,GLdouble right,GLdouble bottom,GLdouble top,
+               GLdouble near,GLdouble far);
 
 /* lists */
 GLuint glGenLists(GLint range);
@@ -934,6 +938,8 @@ void glGetFloatv(GLint pname, GLfloat *v);
 const GLubyte* glGetString(GLenum name);
 GLenum glGetError();
 void glFrontFace(GLint mode);
+void glGetBooleanv(GLint pname, GLboolean *params);
+GLboolean glIsEnabled(GLenum cap);
 
 /* opengl 1.2 arrays */
 void glEnableClientState(GLenum array);

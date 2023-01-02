@@ -20,15 +20,27 @@ void gl_convertRGB_to_5R6G5B(GLushort* pixmap, GLubyte* rgb, GLint xsize, GLint 
  This actually converts to ARGB!!!
  This is the format of the entire engine!!!
 */
-void gl_convertRGB_to_8A8R8G8B(GLuint* pixmap, GLubyte* rgb, GLint xsize, GLint ysize) {
+void gl_convertRGB_to_8A8R8G8B(GLuint* pixmap, GLubyte* rgb, GLint xsize, GLint ysize, GLint components) {
 	GLint i, n;
 	GLubyte* p;
 
 	p = rgb;
 	n = xsize * ysize;
 	for (i = 0; i < n; i++) {
-		pixmap[i] = (((GLuint)p[0]) << 16) | (((GLuint)p[1]) << 8) | (((GLuint)p[2]));
-		p += 3;
+        if (components == 2) {
+            GLuint red = (((GLuint)p[1]) >> 2) & 31;
+            GLuint grn = ((((GLuint)p[1]) & 3) << 3) | (((GLuint)p[0]) >> 5);
+            GLuint blu = (((GLuint)p[0]) >> 0) & 31;
+            red = (red << 3) | (red >> 2);
+            grn = (grn << 3) | (grn >> 2);
+            blu = (blu << 3) | (blu >> 2);
+            pixmap[i] = (255 << 24) | (red << 16) | (grn << 8) | (blu);
+        } else if (components == 4) {
+            pixmap[i] = (((GLuint)p[3]) << 24) | (((GLuint)p[0]) << 16) | (((GLuint)p[1]) << 8) | (((GLuint)p[2]));
+        } else {
+            pixmap[i] = (255 << 24) | (((GLuint)p[0]) << 16) | (((GLuint)p[1]) << 8) | (((GLuint)p[2]));
+        }
+		p += components;
 	}
 }
 
@@ -47,7 +59,7 @@ static GLint GLinterpolate_imutil(GLint v00, GLint v01, GLint v10, GLint xf, GLi
  * TODO: more accurate resampling
  */
 
-void gl_resizeImage(GLubyte* dest, GLint xsize_dest, GLint ysize_dest, GLubyte* src, GLint xsize_src, GLint ysize_src) {
+void gl_resizeImage(GLubyte* dest, GLint xsize_dest, GLint ysize_dest, GLubyte* src, GLint xsize_src, GLint ysize_src, GLint components) {
 	GLubyte *pix, *pix_src;
 	GLfloat x1, y1, x1inc, y1inc;
 	GLint xi, yi, j, xf, yf, x, y;
@@ -68,20 +80,22 @@ void gl_resizeImage(GLubyte* dest, GLint xsize_dest, GLint ysize_dest, GLubyte* 
 			yf = (GLint)((y1 - floor(y1)) * INTERP_NORM);
 
 			if ((xf + yf) <= INTERP_NORM) {
-				for (j = 0; j < 3; j++) {
-					pix[j] = GLinterpolate_imutil(pix_src[(yi * xsize_src + xi) * 3 + j], pix_src[(yi * xsize_src + xi + 1) * 3 + j],
-												  pix_src[((yi + 1) * xsize_src + xi) * 3 + j], xf, yf);
+				for (j = 0; j < components; j++) {
+                    pix[j] = GLinterpolate_imutil(pix_src[(yi * xsize_src + xi) * components + j],
+                                                  pix_src[(yi * xsize_src + xi + 1) * components + j],
+                                                  pix_src[((yi + 1) * xsize_src + xi) * components + j], xf, yf);
 				}
 			} else {
 				xf = INTERP_NORM - xf;
 				yf = INTERP_NORM - yf;
-				for (j = 0; j < 3; j++) {
-					pix[j] = GLinterpolate_imutil(pix_src[((yi + 1) * xsize_src + xi + 1) * 3 + j], pix_src[((yi + 1) * xsize_src + xi) * 3 + j],
-												  pix_src[(yi * xsize_src + xi + 1) * 3 + j], xf, yf);
+				for (j = 0; j < components; j++) {
+                    pix[j] = GLinterpolate_imutil(pix_src[((yi + 1) * xsize_src + xi + 1) * components + j],
+                                                  pix_src[((yi + 1) * xsize_src + xi) * components + j],
+                                                  pix_src[(yi * xsize_src + xi + 1) * components + j], xf, yf);
 				}
 			}
 
-			pix += 3;
+			pix += components;
 			x1 += x1inc;
 		}
 		y1 += y1inc;
@@ -93,7 +107,7 @@ void gl_resizeImage(GLubyte* dest, GLint xsize_dest, GLint ysize_dest, GLubyte* 
 
 /* resizing with no GLinterlating nor nearest pixel */
 
-void gl_resizeImageNoInterpolate(GLubyte* dest, GLint xsize_dest, GLint ysize_dest, GLubyte* src, GLint xsize_src, GLint ysize_src) {
+void gl_resizeImageNoInterpolate(GLubyte* dest, GLint xsize_dest, GLint ysize_dest, GLubyte* src, GLint xsize_src, GLint ysize_src, GLint components) {
 	GLubyte *pix, *pix_src, *pix1;
 	GLint x1, y1, x1inc, y1inc;
 	GLint xi, yi, x, y;
@@ -110,13 +124,16 @@ void gl_resizeImageNoInterpolate(GLubyte* dest, GLint xsize_dest, GLint ysize_de
 		for (x = 0; x < xsize_dest; x++) {
 			xi = x1 >> FRAC_BITS;
 			yi = y1 >> FRAC_BITS;
-			pix1 = pix_src + (yi * xsize_src + xi) * 3;
+			pix1 = pix_src + (yi * xsize_src + xi) * components;
 
 			pix[0] = pix1[0];
 			pix[1] = pix1[1];
-			pix[2] = pix1[2];
+//            if (components == 3)
+//                pix[2] = pix1[2];
+//            if (components == 4)
+//                pix[3] = pix1[3];
 
-			pix += 3;
+			pix += components;
 			x1 += x1inc;
 		}
 		y1 += y1inc;

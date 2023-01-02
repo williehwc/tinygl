@@ -38,7 +38,7 @@
 
 #ifdef INTERP_RGB
 #define RGB(x) x
-#define RGBPIXEL *pp = RGB_TO_PIXEL(r >> 8, g >> 8, b >> 8)
+#define RGBPIXEL *pp = RGB_TO_PIXEL(r >> 8, g >> 8, b >> 8, 000)
 	
 
 #else /* INTERP_RGB */

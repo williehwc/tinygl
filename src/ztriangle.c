@@ -60,7 +60,7 @@ void ZB_fillTriangleFlat(ZBuffer* zb, ZBufferPoint* p0, ZBufferPoint* p1, ZBuffe
 
 
 #define DRAW_INIT()                                                                                                                                            \
-	{ color = RGB_TO_PIXEL(p2->r, p2->g, p2->b); }
+	{ color = RGB_TO_PIXEL(p2->r, p2->g, p2->b, 000); }
 
 #define PUT_PIXEL(_a)                                                                                                                                          \
 	{                                                                                                                                                          \
@@ -79,7 +79,7 @@ void ZB_fillTriangleFlat(ZBuffer* zb, ZBufferPoint* p0, ZBufferPoint* p1, ZBuffe
 }
 
 void ZB_fillTriangleFlatNOBLEND(ZBuffer* zb, ZBufferPoint* p0, ZBufferPoint* p1, ZBufferPoint* p2) {
-	PIXEL color = RGB_TO_PIXEL(p2->r, p2->g, p2->b);
+	PIXEL color = RGB_TO_PIXEL(p2->r, p2->g, p2->b, 000);
 	GLubyte zbdw = zb->depth_write;
 	GLubyte zbdt = zb->depth_test;
 	TGL_STIPPLEVARS
@@ -194,7 +194,7 @@ void ZB_fillTriangleSmoothNOBLEND(ZBuffer* zb, ZBufferPoint* p0, ZBufferPoint* p
 		{                                                                                                                                                      \
 			register GLuint zz = z >> ZB_POINT_Z_FRAC_BITS;                                                                                                    \
 			if (ZCMPSIMP(zz, pz[_a], _a, 0)) {                                                                                                                 \
-				pp[_a] = RGB_TO_PIXEL(or1, og1, ob1);                                                                                                          \
+				pp[_a] = RGB_TO_PIXEL(or1, og1, ob1, 000);                                                                                                          \
 				if (zbdw)                                                                                                                                      \
 					pz[_a] = zz;                                                                                                                               \
 			}                                                                                                                                                  \
@@ -376,7 +376,9 @@ void ZB_fillTriangleMappingPerspective(ZBuffer* zb, ZBufferPoint* p0, ZBufferPoi
 			register GLuint zz = z >> ZB_POINT_Z_FRAC_BITS;                                                                                                    \
 			if (ZCMPSIMP(zz, pz[_a], _a, 0)) {                                                                                                                 \
 				/*pp[_a] = RGB_MIX_FUNC(or1, og1, ob1, TEXTURE_SAMPLE(texture, s, t));*/                                                                       \
-				TGL_BLEND_FUNC(RGB_MIX_FUNC(or1, og1, ob1, (TEXTURE_SAMPLE(texture, s, t))), (pp[_a]));                                                        \
+                PIXEL set = RGB_MIX_FUNC(or1, og1, ob1, 000, (TEXTURE_SAMPLE(texture, s, t))); \
+                unsigned char *b = (unsigned char*)&set; \
+                if (b[3] == 255) TGL_BLEND_FUNC(set, (pp[_a]));                                                        \
 				if (zbdw)                                                                                                                                      \
 					pz[_a] = zz;                                                                                                                               \
 			}                                                                                                                                                  \
@@ -432,14 +434,16 @@ void ZB_fillTriangleMappingPerspectiveNOBLEND(ZBuffer* zb, ZBufferPoint* p0, ZBu
 	}
 #if TGL_FEATURE_LIT_TEXTURES == 1
 #define OR1OG1OB1DECL                                                                                                                                          \
-	register GLint or1, og1, ob1;                                                                                                                              \
+	register GLint or1, og1, ob1, oa1;                                                                                                                              \
 	or1 = r1;                                                                                                                                                  \
 	og1 = g1;                                                                                                                                                  \
-	ob1 = b1;
+	ob1 = b1;                                                                                                                                                  \
+    oa1 = a1;
 #define OR1G1B1INCR                                                                                                                                            \
 	og1 += dgdx;                                                                                                                                               \
 	or1 += drdx;                                                                                                                                               \
-	ob1 += dbdx;
+	ob1 += dbdx;                                                                                                                                               \
+    oa1 += dadx;
 #else
 #define OR1OG1OB1DECL /*A comment*/
 #define OR1G1B1INCR   /*Another comment*/
@@ -453,9 +457,21 @@ void ZB_fillTriangleMappingPerspectiveNOBLEND(ZBuffer* zb, ZBufferPoint* p0, ZBu
 		{                                                                                                                                                      \
 			register GLuint zz = z >> ZB_POINT_Z_FRAC_BITS;                                                                                                    \
 			if (ZCMPSIMP(zz, pz[_a], _a, 0)) {                                                                                                                 \
-				pp[_a] = RGB_MIX_FUNC(or1, og1, ob1, TEXTURE_SAMPLE(texture, s, t));                                                                           \
-				if (zbdw)                                                                                                                                      \
-					pz[_a] = zz;                                                                                                                               \
+                PIXEL set = RGB_MIX_FUNC(or1, og1, ob1, 000, TEXTURE_SAMPLE(texture, s, t));                                                                           \
+                unsigned char *b = (unsigned char*)&set; \
+                if (b[3] == 255) { \
+                    pp[_a] = set; \
+                    if (zbdw)                                                                                                                                      \
+                        pz[_a] = zz;                                                                                                                               \
+                } else if (b[3] > 0) { \
+                    unsigned char *a = (unsigned char*)&pp[_a]; \
+                    a[3] = (b[3]*b[3] + (256 - b[3])*a[3]) >> 8; \
+                    a[2] = (b[2]*b[3] + (256 - b[3])*a[2]) >> 8; \
+                    a[1] = (b[1]*b[3] + (256 - b[3])*a[1]) >> 8; \
+                    a[0] = (b[0]*b[3] + (256 - b[3])*a[0]) >> 8; \
+                    if (zbdw)                                                                                                                                      \
+                        pz[_a] = zz;                                                                                                                               \
+                } \
 			}                                                                                                                                                  \
 		}                                                                                                                                                      \
 		z += dzdx;                                                                                                                                             \
@@ -487,4 +503,4 @@ void ZB_fillTriangleMappingPerspectiveNOBLEND(ZBuffer* zb, ZBufferPoint* p0, ZBu
 #include "ztriangle.h"
 }
 
-#endif 
+#endif

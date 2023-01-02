@@ -24,7 +24,7 @@ void ZB_plot(ZBuffer* zb, ZBufferPoint* p) {
 		if (ZCMP(zz, *pz)) {
 #if TGL_FEATURE_BLEND == 1
 			if (!zb->enable_blend)
-				*pp = RGB_TO_PIXEL(p->r, p->g, p->b);
+				*pp = RGB_TO_PIXEL(p->r, p->g, p->b, 000);
 			else
 				TGL_BLEND_FUNC_RGB(p->r, p->g, p->b, (*pp))
 #else
@@ -34,7 +34,7 @@ void ZB_plot(ZBuffer* zb, ZBufferPoint* p) {
 				*pz = zz;
 		}
 	} else {
-		PIXEL col = RGB_TO_PIXEL(p->r, p->g, p->b);
+		PIXEL col = RGB_TO_PIXEL(p->r, p->g, p->b, 000);
 		GLfloat hzbps = zbps / 2.0f;
 		GLint bx = (GLfloat)p->x - hzbps;
 		GLint ex = (GLfloat)p->x + hzbps;
@@ -100,8 +100,8 @@ static void ZB_line_interp(ZBuffer* zb, ZBufferPoint* p1, ZBufferPoint* p2) {
 void ZB_line_z(ZBuffer* zb, ZBufferPoint* p1, ZBufferPoint* p2) {
 	GLint color1, color2;
 	
-	color1 = RGB_TO_PIXEL(p1->r, p1->g, p1->b);
-	color2 = RGB_TO_PIXEL(p2->r, p2->g, p2->b);
+	color1 = RGB_TO_PIXEL(p1->r, p1->g, p1->b, 000);
+	color2 = RGB_TO_PIXEL(p2->r, p2->g, p2->b, 000);
 
 	/* choose if the line should have its color GLinterpolated or not */
 	if (color1 == color2) {
@@ -114,8 +114,8 @@ void ZB_line_z(ZBuffer* zb, ZBufferPoint* p1, ZBufferPoint* p2) {
 void ZB_line(ZBuffer* zb, ZBufferPoint* p1, ZBufferPoint* p2) {
 	GLint color1, color2;
 
-	color1 = RGB_TO_PIXEL(p1->r, p1->g, p1->b);
-	color2 = RGB_TO_PIXEL(p2->r, p2->g, p2->b);
+	color1 = RGB_TO_PIXEL(p1->r, p1->g, p1->b, 000);
+	color2 = RGB_TO_PIXEL(p2->r, p2->g, p2->b, 000);
 
 	/* choose if the line should have its color GLinterpolated or not */
 	if (color1 == color2) {

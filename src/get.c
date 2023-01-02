@@ -680,8 +680,51 @@ void glGetFloatv(GLint pname, GLfloat* v) {
 		v[0] = c->zb->pointsize;
 		v[1] = c->zb->pointsize;
 		break;
+    case GL_CURRENT_COLOR:
+        v[0] = c->current_color.X;
+        v[1] = c->current_color.Y;
+        v[2] = c->current_color.Z;
+        v[3] = c->current_color.W;
+        break;
 	default:
 		tgl_warning("warning: unknown pname in glGetFloatv()\n");
 		break;
 	}
+}
+
+void glGetBooleanv(GLint pname, GLboolean* params) {
+    switch (pname) {
+        case GL_DEPTH_WRITEMASK:
+            params[0] = gl_get_context()->zb->depth_write;
+            break;
+        default:
+            tgl_warning("warning: unknown pname in glGetBooleanv()\n");
+            break;
+    }
+}
+
+GLboolean glIsEnabled(GLenum cap) {
+    GLContext* c;
+    c = gl_get_context();
+    switch (cap) {
+        case GL_CULL_FACE:
+            return c->cull_face_enabled;
+            break;
+        case GL_DEPTH_TEST:
+            return c->zb->depth_test;
+            break;
+        case GL_NORMALIZE:
+            return c->normalize_enabled;
+            break;
+        case GL_TEXTURE_2D:
+            return c->texture_2d_enabled;
+            break;
+        case GL_BLEND:
+            return c->zb->enable_blend;
+            break;
+        default:
+            tgl_warning("warning: unknown cap in glIsEnabled()\n");
+            return GL_FALSE;
+            break;
+    }
 }

@@ -377,7 +377,7 @@ void ZB_clear(ZBuffer* zb, GLint clear_z, GLint z, GLint clear_color, GLint r, G
 #if TGL_FEATURE_FORCE_CLEAR_NO_COPY_COLOR
 			color = TGL_NO_COPY_COLOR;
 #else
-			color = RGB_TO_PIXEL(r, g, b);
+			color = RGB_TO_PIXEL(r, g, b, 255);
 #endif
 			memset_l(pp, color, zb->xsize);
 #else

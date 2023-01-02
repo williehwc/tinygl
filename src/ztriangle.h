@@ -41,6 +41,7 @@ Things to keep in mind:
 	GLint r1, drdx, drdy, drdl_min, drdl_max;
 	GLint g1, dgdx, dgdy, dgdl_min, dgdl_max;
 	GLint b1, dbdx, dbdy, dbdl_min, dbdl_max;
+    GLint a1, dadx;
 #endif
 #ifdef INTERP_ST
 	GLint s1, dsdx, dsdy, dsdl_min, dsdl_max;

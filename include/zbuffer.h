@@ -42,14 +42,15 @@
 #define COLOR_R_GET32(r) ((r) & 0xff0000)
 #define COLOR_G_GET32(g) ((g>>8) & 0xff00)
 #define COLOR_B_GET32(b) ((b >>16)&0xff)
+#define COLOR_A_GET32(a) (((a)<<8) & 0xff000000)
 
 #define COLOR_R_GET16(r) ((r>>8) & 0xF800)
 #define COLOR_G_GET16(g) ((((g)) >> 13) & 0x07E0)
 #define COLOR_B_GET16(b) (((b) >> 19) & 31)
 
 #if TGL_FEATURE_RENDER_BITS == 32
-#define RGB_TO_PIXEL(r,g,b) \
-  ( COLOR_R_GET32(r) | COLOR_G_GET32(g) | COLOR_B_GET32(b) )
+#define RGB_TO_PIXEL(r,g,b,a) \
+  ( COLOR_R_GET32(r) | COLOR_G_GET32(g) | COLOR_B_GET32(b) | (a << 24) )
 #elif TGL_FEATURE_RENDER_BITS == 16
 #define RGB_TO_PIXEL(r,g,b) \
 	( COLOR_R_GET16(r) | COLOR_G_GET16(g) | COLOR_B_GET16(b)  )
@@ -85,6 +86,7 @@
 #define GET_RED(p) ((p>>16)&0xff)
 #define GET_GREEN(p) ((p>>8)&0xff)
 #define GET_BLUE(p) (p&0xff)
+#define GET_ALPHA(p) ((p>>24)&0xff)
 typedef GLuint PIXEL;
 #define PSZB 4
 #define PSZSH 5
@@ -111,11 +113,12 @@ typedef GLushort PIXEL;
 #endif
 
 #if TGL_FEATURE_LIT_TEXTURES == 1
-#define RGB_MIX_FUNC(rr, gg, bb, tpix) \
+#define RGB_MIX_FUNC(rr, gg, bb, aa, tpix) \
 	RGB_TO_PIXEL( \
 		((rr * GET_RED(tpix))>>8),\
 		((gg * GET_GREEN(tpix))>>8),\
-		((bb * GET_BLUE(tpix))>>8)\
+		((bb * GET_BLUE(tpix))>>8),\
+        (GET_ALPHA(tpix))\
 	)
 #else
 #define RGB_MIX_FUNC(rr, gg, bb, tpix)(tpix)
@@ -140,21 +143,21 @@ typedef GLushort PIXEL;
 				sr = TGL_CLAMPI(sr);													\
 				sg = TGL_CLAMPI(sg);													\
 				sb = TGL_CLAMPI(sb);													\
-				dest = RGB_TO_PIXEL(sr,sg,sb);											\
+				dest = RGB_TO_PIXEL(sr,sg,sb, 000);											\
 			break;																		\
 			case GL_FUNC_SUBTRACT:														\
 				sr-=dr;sg-=dg;sb-=db;													\
 				sr = TGL_CLAMPI(sr);													\
 				sg = TGL_CLAMPI(sg);													\
 				sb = TGL_CLAMPI(sb);													\
-				dest = RGB_TO_PIXEL(sr,sg,sb);											\
+				dest = RGB_TO_PIXEL(sr,sg,sb, 000);											\
 			break;																		\
 			case GL_FUNC_REVERSE_SUBTRACT:												\
 				sr=dr-sr;sg=dg-sg;sb=db-sb;												\
 				sr = TGL_CLAMPI(sr);													\
 				sg = TGL_CLAMPI(sg);													\
 				sb = TGL_CLAMPI(sb);													\
-				dest = RGB_TO_PIXEL(sr,sg,sb);											\
+				dest = RGB_TO_PIXEL(sr,sg,sb, 000);											\
 			break;																		\
 			  																			\
 		}
