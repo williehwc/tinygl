@@ -307,7 +307,7 @@ void ZB_resize(ZBuffer *zb,void *frame_buffer,GLint xsize,GLint ysize);
 void ZB_clear(ZBuffer *zb,GLint clear_z,GLint z,
 	      GLint clear_color,GLint r,GLint g,GLint b);
 /* linesize is in BYTES */
-void ZB_copyFrameBuffer(ZBuffer *zb,void *buf,GLint linesize);
+void ZB_copyFrameBuffer(ZBuffer *zb,void *buf,GLint linesize,PIXEL* background);
 
 /* zdither.c */
 

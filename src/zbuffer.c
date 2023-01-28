@@ -114,7 +114,7 @@ void ZB_resize(ZBuffer* zb, void* frame_buffer, GLint xsize, GLint ysize) {
 }
 #endif
 
-static void ZB_copyBuffer(ZBuffer* zb, void* buf, GLint linesize) {
+static void ZB_copyBuffer(ZBuffer* zb, void* buf, GLint linesize, PIXEL* background) {
 	GLint y, i;
 #if TGL_FEATURE_MULTITHREADED_ZB_COPYBUFFER == 1
 #ifdef _OPENMP
@@ -139,6 +139,7 @@ static void ZB_copyBuffer(ZBuffer* zb, void* buf, GLint linesize) {
 #else
 	for (y = 0; y < zb->ysize; y++) {
 		PIXEL* q;
+        PIXEL* b1;
 		GLubyte* p1;
 		q = zb->pbuf + y * zb->xsize;
 		p1 = (GLubyte*)buf + y * linesize;
@@ -148,7 +149,11 @@ static void ZB_copyBuffer(ZBuffer* zb, void* buf, GLint linesize) {
 				*(((PIXEL*)p1) + i) = *(q + i);
 		}
 #else
-		memcpy(p1, q, linesize);
+        memcpy(p1, q, linesize);
+        if (background != NULL) {
+			b1 = background + y * zb->xsize;
+            memcpy(q, b1, linesize);
+        }
 #endif
 	}
 #endif
@@ -303,8 +308,8 @@ void ZB_copyFrameBuffer(ZBuffer* zb, void* buf, GLint linesize) {
 #define RGB32_TO_RGB16(v) (((v >> 8) & 0xf800) | (((v) >> 5) & 0x07e0) | (((v)&0xff) >> 3))
 
 
-void ZB_copyFrameBuffer(ZBuffer* zb, void* buf, GLint linesize) {
-	ZB_copyBuffer(zb, buf, linesize);
+void ZB_copyFrameBuffer(ZBuffer* zb, void* buf, GLint linesize, PIXEL* background) {
+	ZB_copyBuffer(zb, buf, linesize, background);
 }
 
 #endif 
